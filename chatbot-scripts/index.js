@@ -1,4 +1,8 @@
+import 'dotenv/config'
 import fm from "front-matter";
+import { OpenAI } from "openai";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const parseExpoDocs = async (slug) => {
   const url = `https://raw.githubusercontent.com/expo/expo/main/docs/pages/${slug}.mdx`;
@@ -6,7 +10,21 @@ const parseExpoDocs = async (slug) => {
   const content = await response.text();
 
   const data = fm(content);
-  console.log(content);
+  return data;
 };
 
-parseExpoDocs("get-started/start-developing");
+
+
+const handleDoc = async (slug) => {
+  const data = await parseExpoDocs(slug);
+
+  const embedding = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input: data.body,
+    encoding_format: 'float',
+  })
+  console.log(embedding.data[0])
+}
+
+
+handleDoc("get-started/start-developing");
